@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 from color import Color, ColorHSV
-from LPD8806 import LPD8806
 
 #Not all LPD8806 strands are created equal.
 #Some, like Adafruit's use GRB order and the other common order is GRB
@@ -15,19 +14,23 @@ class ChannelOrder:
 
 class LEDStrip:
 
-    def __init__(self, leds, use_py_spi = False, dev="/dev/spidev0.0", driver="LPD8806"):
+    def __init__(self, num_leds, use_py_spi = False, dev="/dev/spidev0.0", driver="LPD8806"):
         #Variables:
         #	leds -- strand size
         #	dev -- spi device
 
-        #no alternate drivers for now. Here so they can be added later
-        self.driver = LPD8806(leds, use_py_spi, dev)
+        if driver == "LPD8806":
+            from LPD8806 import LPD8806
+            self.driver = LPD8806(num_leds, use_py_spi, dev)
+        elif driver == "Diamex":
+            from DiamexLedPlayer import DiamexLedPlayer
+            self.driver = DiamexLedPlayer(dev)
 
         self.c_order = ChannelOrder.GRB
-        self.leds = leds
+        self.leds = num_leds
         self.lastIndex = self.leds - 1
         self.gamma = bytearray(256)
-        self.buffer = [0 for x in range(self.leds + 1)]
+        self.buffer = [0 for x in range(self.leds)]
 
         self.masterBrightness = 1.0
 
@@ -115,3 +118,4 @@ class LEDStrip:
         self.update()
         self.fillOff()
         self.update()
+
